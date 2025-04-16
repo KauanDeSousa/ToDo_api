@@ -1,0 +1,66 @@
+datasource db {
+  provider = "postgresql" // ou "mysql", "sqlite", "mongodb", etc.
+  url      = env("DATABASE_URL") // string de conexão no .env
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----- MODELS -----
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  // Relação many-to-many com Label
+  labels      Label[]   @relation("TasksOnLabels")
+  // Relação com Category
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  // Relação com User
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
+  // Relação com SubTask
+  subtasks    SubTask[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model SubTask {
+  id          String   @id @default(uuid())
+  title       String
+  isCompleted Boolean   @default(false)
+  taskId      String
+  task        Task      @relation(fields: [taskId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Label {
+  id        String   @id @default(uuid())
+  name      String
+  color     String?
+  // Relação many-to-many com Task
+  tasks     Task[]   @relation("TasksOnLabels")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
